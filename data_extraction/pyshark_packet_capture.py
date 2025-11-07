@@ -3,10 +3,10 @@ Packet capture and analysis using pyshark
 """
 
 import pyshark
-import asyncio
 import json
-import uuid
 import os
+import sys
+import subprocess
 from datetime import datetime
 from typing import Dict, Any
 
@@ -20,7 +20,7 @@ class PacketMetadata:
         self.length = packet.length
         self.src_port = packet[packet.transport_layer].srcport if hasattr(packet, 'transport_layer') else None
         self.dst_port = packet[packet.transport_layer].dstport if hasattr(packet, 'transport_layer') else None
-        
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "timestamp": self.timestamp.isoformat(),
@@ -43,26 +43,23 @@ class HTTPPacket:
         self.uri = None
         self.response_code = None
         self._parse_http_layer(packet)
-        
+
     def _parse_http_layer(self, packet):
         if not self.http:
             return
-            
-        # Extract HTTP headers
+
         for field in dir(packet.http):
             if field.startswith(('request_', 'response_')):
                 header_name = field.replace('request_', '').replace('response_', '')
                 self.headers[header_name] = getattr(packet.http, field)
-        
-        # Extract method, URI, and response code
+
         self.method = getattr(packet.http, "request_method", None)
         self.uri = getattr(packet.http, "request_uri", None)
         self.response_code = getattr(packet.http, "response_code", None)
-        
-        # Extract body if available
+
         if hasattr(packet.http, 'file_data'):
             self.body = packet.http.file_data
-            
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "metadata": self.metadata.to_dict(),
@@ -84,11 +81,10 @@ class PacketCapture:
         self.save_raw = save_raw
         self.data_dir = data_dir
         self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # Create data directory if it doesn't exist
+
         if self.save_raw:
             os.makedirs(self.data_dir, exist_ok=True)
-        
+
         self.stats = {
             "total_packets": 0,
             "http_packets": 0,
@@ -97,46 +93,36 @@ class PacketCapture:
             "high_risk_packets": 0,
             "sensitive_data_detected": 0
         }
-        
-    async def start_capture(self, duration=None):
-        """Start capturing packets with optional duration"""
-        # Create capture with custom display filter for HTTP
+
+    def start_capture(self, duration=None):
         self.capture = pyshark.LiveCapture(
             interface=self.interface,
-            display_filter='http'  # Focus on HTTP traffic
+            display_filter='http'
         )
-        
+
         print(f"Starting packet capture on interface: {self.interface}")
         print(f"Duration: {'∞' if duration is None else f'{duration}s'}")
-        
+
         try:
-            # Start packet processing
-            if duration:
-                self.capture.sniff(timeout=duration)
-            else:
-                self.capture.sniff_continuously()
-                
+            self.capture.sniff(timeout=duration)
+
             for packet in self.capture:
-                await self.process_packet(packet)
-                
+                self.process_packet(packet)
+
         except KeyboardInterrupt:
-            print("\n⛔ Stopping packet capture...")
+            print("Stopping packet capture...")
         finally:
             if self.capture:
                 self.capture.close()
-                
-    async def process_packet(self, packet):
-        """Process a single packet"""
+
+    def process_packet(self, packet):
         try:
-            # Create HTTPPacket object
             http_packet = HTTPPacket(packet)
             self.packets.append(http_packet)
-            
-            # Save raw packet data if enabled
+
             if self.save_raw and http_packet.http:
-                await self._save_raw_packet(http_packet)
-            
-            # Update basic statistics
+                self._save_raw_packet(http_packet)
+
             self.stats["total_packets"] += 1
             if http_packet.http:
                 self.stats["http_packets"] += 1
@@ -144,121 +130,114 @@ class PacketCapture:
                     self.stats["get_requests"] += 1
                 elif http_packet.method == "POST":
                     self.stats["post_requests"] += 1
-            
-            return http_packet
-            
+
         except Exception as e:
             print(f"Error processing packet: {str(e)}")
-            return None
-    
-    async def _save_raw_packet(self, http_packet):
-        """Save raw packet data to file"""
+
+    def _save_raw_packet(self, http_packet):
         try:
             filename = f"packets_{self.session_id}.jsonl"
             filepath = os.path.join(self.data_dir, filename)
-            
+
             packet_data = {
                 "timestamp": http_packet.metadata.timestamp.isoformat(),
                 "session_id": self.session_id,
                 "packet_data": http_packet.to_dict()
             }
-            
-            # Append to JSONL file
+
             with open(filepath, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(packet_data) + '\n')
-                
+
         except Exception as e:
             print(f"Error saving raw packet: {str(e)}")
-            
-    def load_saved_packets(self, session_id=None):
-        """Load previously saved packets from file"""
-        if session_id is None:
-            session_id = self.session_id
-            
-        filename = f"packets_{session_id}.jsonl"
-        filepath = os.path.join(self.data_dir, filename)
-        
-        packets = []
-        try:
-            if os.path.exists(filepath):
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        data = json.loads(line.strip())
-                        packets.append(data)
-            return packets
-        except Exception as e:
-            print(f"Error loading packets: {str(e)}")
-            return []
-        
+
     def print_statistics(self):
-        """Print capture statistics"""
-        print("\n📊 Capture Statistics")
+        print("\nCapture Statistics")
         print("=" * 40)
         print(f"Total Packets: {self.stats['total_packets']}")
         print(f"HTTP Packets: {self.stats['http_packets']}")
         print(f"GET Requests: {self.stats['get_requests']}")
         print(f"POST Requests: {self.stats['post_requests']}")
-        print(f"High Risk Packets: {self.stats['high_risk_packets']}")
-        print(f"Sensitive Data Detected: {self.stats['sensitive_data_detected']}")
-        if self.save_raw:
-            print(f"Raw data saved to: {self.data_dir}/packets_{self.session_id}.jsonl")
         print("=" * 40)
 
-
-if __name__ == "__main__":
-    """Real packet capture demonstration"""
-    import sys
-    
-    print("🚀 Starting Real Packet Capture...")
-    print("⚠️  This requires administrator privileges!")
-    
-    async def main():
-        try:
-            # Initialize real packet capture
-            capture = PacketCapture(interface="any", save_raw=True, data_dir="data/raw")
-            
-            # Start capturing for 30 seconds by default
-            duration = 30
-            if len(sys.argv) > 1:
-                try:
-                    duration = int(sys.argv[1])
-                except ValueError:
-                    print("Invalid duration, using default 30 seconds")
-            
-            print(f"📡 Capturing HTTP traffic for {duration} seconds...")
-            print("💡 Generate some HTTP traffic (browse websites, API calls, etc.)")
-            print("🛑 Press Ctrl+C to stop early")
-            
-            await capture.start_capture(duration=duration)
-            
-            # Print final statistics
-            capture.print_statistics()
-            
-            # Show some captured packets
-            if capture.packets:
-                print(f"\n📦 Sample captured packets:")
-                for i, packet in enumerate(capture.packets[:3], 1):
-                    print(f"  Packet {i}: {packet.method} {packet.uri}")
-                    print(f"    From: {packet.metadata.src_ip}:{packet.metadata.src_port}")
-                    print(f"    To: {packet.metadata.dst_ip}:{packet.metadata.dst_port}")
-                    if len(capture.packets) > 3:
-                        print(f"  ... and {len(capture.packets) - 3} more packets")
-                        break
-            else:
-                print("\n📦 No HTTP packets captured")
-                print("💡 Try browsing websites or making API calls during capture")
-            
-        except PermissionError:
-            print("❌ Permission denied!")
-            print("💡 Run as administrator: Right-click PowerShell -> 'Run as administrator'")
-        except Exception as e:
-            print(f"❌ Error: {str(e)}")
-            print("� Make sure Wireshark/TShark is installed")
-    
-    # Run real packet capture
+def list_tshark_interfaces() -> Dict[int, str]:
+    """
+    Run `tshark -D` and return mapping index -> interface string.
+    Returns an empty dict if tshark can't be run.
+    """
     try:
-        import asyncio
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n👋 Capture stopped by user")
-        print("✅ Real packet capture completed!")
+        res = subprocess.run(["tshark", "-D"], capture_output=True, text=True, check=True)
+        lines = [l.strip() for l in res.stdout.splitlines() if l.strip()]
+        mapping = {}
+        for line in lines:
+            # Typical lines: "1. \Device\NPF_{...}" or "2. Wi-Fi"
+            try:
+                idx_s, iface = line.split(".", 1)
+                idx = int(idx_s.strip())
+                mapping[idx] = iface.strip()
+            except Exception:
+                # fallback: enumerate
+                mapping[len(mapping) + 1] = line
+        return mapping
+    except Exception:
+        return {}
+if __name__ == "__main__":
+    print("🚀 Real Packet Capture (Windows)")
+    print("⚠️  This requires Administrator PowerShell")
+    print()
+
+    # enumerate interfaces
+    mapping = list_tshark_interfaces()
+    if not mapping:
+        print("❌ tshark -D returned nothing. Install Wireshark+TShark and ensure tshark in PATH.")
+        sys.exit(1)
+
+    print("Available Interfaces:\n")
+    for idx, iface in mapping.items():
+        print(f"  {idx}) {iface}")
+    print()
+
+    while True:
+        try:
+            choice = int(input("Select interface number: ").strip())
+            if choice in mapping:
+                break
+        except Exception:
+            pass
+        print("Invalid selection. Try again.\n")
+
+    # mapping[choice] looks like: r"\Device\NPF_{...} (Wi-Fi)" or sometimes just the raw name.
+    full_iface = mapping[choice]
+
+    # Extract the raw interface token (left side before " (FriendlyName)")
+    # If there is no " (", this returns the whole string unchanged.
+    raw_iface = full_iface.split(" (", 1)[0]
+
+    print()
+    dur_s = input("Capture duration seconds (ENTER=30): ").strip()
+    duration = 30
+    if dur_s:
+        try:
+            duration = int(dur_s)
+        except Exception:
+            print("Invalid duration, using 30.")
+
+    print(f"\nInterface selected: {full_iface}")
+    print(f"Using interface token: {raw_iface}")
+    print(f"Duration: {duration}s\n")
+
+    print("💡 Generate HTTP traffic now (browse web etc.)\n")
+
+    try:
+        cap = PacketCapture(interface=raw_iface, save_raw=True, data_dir="data/raw")
+        cap.start_capture(duration=duration)
+        cap.print_statistics()
+
+        if cap.packets:
+            print("\nSample packets:")
+            for i, packet in enumerate(cap.packets[:3], 1):
+                print(f"  {i}: {packet.method} {packet.uri}")
+    except PermissionError:
+        print("❌ Permission denied: run PowerShell as Administrator")
+    except Exception as e:
+        print(f"❌ Error: {e}")
