@@ -6,7 +6,7 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyEnable -Value 1
 
 #step 3: run mitmproxy in venv(if exist)
- mitmproxy -s save_flow.py --listen-host 0.0.0.0 -p 8080
+ mitmproxy -s flow_saver.py --listen-host 0.0.0.0 -p 8080
 
 #step 4: add certificate to laptop
 certutil -addstore -enterprise -f "Root" "C:\Users\Tanmay\.mitmproxy\mitmproxy-ca-cert.cer"
@@ -32,17 +32,17 @@ export OPENAI_API_KEY="your-api-key"  # For OpenAI
 export ANTHROPIC_API_KEY="your-api-key"  # For Claude
 
 # List available analyzers
-python analyze_mitm_logs.py --list-analyzers
+python log_analyzer.py --list-analyzers
 
 # Analyze with default model (Gemini)
-python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl
+python log_analyzer.py mitm_logs/mitm-2025-11-08.jsonl
 
 # Specify analyzer and model
-python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --analyzer openai --model gpt-4
-python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --analyzer claude --model claude-3-opus-20240229
+python log_analyzer.py mitm_logs/mitm-2025-11-08.jsonl --analyzer openai --model gpt-4
+python log_analyzer.py mitm_logs/mitm-2025-11-08.jsonl --analyzer claude --model claude-3-opus-20240229
 
 # Limit number of logs to process
-python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --max-logs 5
+python log_analyzer.py mitm_logs/mitm-2025-11-08.jsonl --max-logs 5
 
 # Save results to a specific file
-python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --output my_analysis.json
+python log_analyzer.py mitm_logs/mitm-2025-11-08.jsonl --output my_analysis.json

@@ -1,5 +1,24 @@
-/venv
+# Python
 __pycache__/
-*.pyc
+**__pycache__**
+*.py[cod]
+*$py.class
+.env
+*.db
+*.sqlite3
+**venv**
+/venv
 
-# mitm_logs
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+packets_**.jsonl
+
+# OS
+.DS_Store
+Thumbs.db

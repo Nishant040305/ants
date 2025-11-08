@@ -7,7 +7,7 @@ from .base_analyzer import BaseAnalyzer
 class OpenAIAnalyzer(BaseAnalyzer):
     """Security analyzer using OpenAI's models."""
     
-    def __init__(self, model_name: str = "gpt-4o"):
+    def __init__(self, model_name: str = "gpt-4o", base_url=None):
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment variables")
