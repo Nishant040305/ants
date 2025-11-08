@@ -8,6 +8,7 @@ from .base_analyzer import BaseAnalyzer
 from .gemini_analyzer import GeminiAnalyzer
 from .openai_analyzer import OpenAIAnalyzer
 from .claude_analyzer import ClaudeAnalyzer
+from .grok_analyzer import GrokLlamaAnalyzer
 from .analyzer_factory import AnalyzerFactory
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     'GeminiAnalyzer',
     'OpenAIAnalyzer',
     'ClaudeAnalyzer',
+    'GrokLlamaAnalyzer',
     'AnalyzerFactory'
 ]

@@ -17,7 +17,7 @@ class LLMModel:
             raise ValueError("OpenRouter API key must be provided or set in OPENROUTER_API_KEY environment variable")
         
         self.base_url = "https://openrouter.ai/api/v1"
-        self.default_model = "google/gemma-7b"  # Default model
+        self.default_model = "deepseek/deepseek-chat-v3.1:free"  # Default model
         self.max_retries = 3
         self.retry_delay = 1  # seconds
         

@@ -3,6 +3,7 @@ from .base_analyzer import BaseAnalyzer
 from .gemini_analyzer import GeminiAnalyzer
 from .openai_analyzer import OpenAIAnalyzer
 from .claude_analyzer import ClaudeAnalyzer
+from .grok_analyzer import GrokLlamaAnalyzer
 
 class AnalyzerFactory:
     """Factory class to create and manage different analyzer instances."""
@@ -10,7 +11,8 @@ class AnalyzerFactory:
     _ANALYZERS = {
         'gemini': GeminiAnalyzer,
         'openai': OpenAIAnalyzer,
-        'claude': ClaudeAnalyzer
+        'claude': ClaudeAnalyzer,
+        'grok': GrokLlamaAnalyzer
     }
     
     @classmethod
@@ -19,7 +21,7 @@ class AnalyzerFactory:
         Create an analyzer instance by type.
         
         Args:
-            analyzer_type: One of 'gemini', 'openai', or 'claude'
+            analyzer_type: One of 'gemini', 'openai', 'claude', or 'grok'
             **kwargs: Additional arguments to pass to the analyzer
             
         Returns:
@@ -58,6 +60,11 @@ class AnalyzerFactory:
                 'model': 'claude-3-sonnet-20240229',
                 'env_var': 'ANTHROPIC_API_KEY',
                 'description': 'Anthropic Claude model for security analysis'
+            },
+            'grok': {
+                'model': 'grok-llama-3.1-8b-instant',
+                'env_var': 'GROK_API_KEY',
+                'description': 'Grok LLaMA 3.1 model for security analysis'
             }
         }
         return configs.get(analyzer_type.lower(), {})
