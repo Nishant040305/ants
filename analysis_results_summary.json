@@ -1,0 +1,8 @@
+{
+  "analyzer": "Claude claude-3-sonnet-20240229",
+  "timestamp": "2025-11-08T06:59:48.497716",
+  "total_requests": 10,
+  "average_severity": 0.0,
+  "high_severity_findings": 0,
+  "details_file": "analysis_results.json"
+}
