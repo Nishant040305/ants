@@ -172,10 +172,22 @@ scripts\proxy_disable.bat   # Disable when done
 
 ## 📚 Documentation
 
-- **[Analyzer Guide](docs/analyzer_guide.md)** - Detailed usage and configuration
+### Getting Started
+- **[Quick Start Guide](docs/getting-started.md)** - Get running in 5 minutes
+- **[Installation Guide](docs/installation.md)** - Detailed setup instructions
+- **[Configuration Guide](docs/configuration.md)** - Environment and settings
+
+### User Guides  
+- **[Traffic Capture Guide](docs/traffic-capture.md)** - HTTP/HTTPS traffic interception
+- **[Analysis Guide](docs/analyzer_guide.md)** - Understanding analysis results
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
+
+### Reference
+- **[Command Reference](docs/command_reference.md)** - Complete CLI documentation
 - **[Security Rules Reference](docs/security_rules_reference.md)** - Rule development history
 - **[Packet Filter Reference](docs/packet_filter_reference.md)** - Filter implementation details
-- **[Command Reference](docs/command_reference.txt)** - CLI command examples
+
+📖 **[Complete Documentation Index](docs/README.md)**
 
 ## 🧪 Development
 
