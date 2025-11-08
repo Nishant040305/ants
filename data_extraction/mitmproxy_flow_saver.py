@@ -6,7 +6,7 @@ import json
 import base64
 from datetime import datetime, date
 
-OUT_DIR = Path.cwd() / "mitm_logs"
+OUT_DIR = Path(__file__).parent.parent / "logs" / "mitm_logs"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def _get_body_text_or_b64(message):
