@@ -9,7 +9,7 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet
  mitmproxy -s save_flow.py --listen-host 0.0.0.0 -p 8080
 
 #step 4: add certificate to laptop
-certutil -addstore -enterprise -f "Root" "C:\Users\Lenovo\.mitmproxy\mitmproxy-ca-cert.cer"
+certutil -addstore -enterprise -f "Root" "C:\Users\Tanmay\.mitmproxy\mitmproxy-ca-cert.cer"
 
 # done now packet are coming corretely
 
