@@ -22,3 +22,27 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet
 #remove certificate
 certutil -delstore -enterprise Root F00CDBC6DF867BE8A084780640E0318531E16B83
 Get-ChildItem Cert:\LocalMachine\Root | Where-Object { $_.Subject -like "*mitmproxy*" } | Remove-Item -Force
+
+
+#Run LocalMachine# Set your API key
+export GOOGLE_API_KEY="your-api-key"  # For Gemini
+# or
+export OPENAI_API_KEY="your-api-key"  # For OpenAI
+# or
+export ANTHROPIC_API_KEY="your-api-key"  # For Claude
+
+# List available analyzers
+python analyze_mitm_logs.py --list-analyzers
+
+# Analyze with default model (Gemini)
+python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl
+
+# Specify analyzer and model
+python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --analyzer openai --model gpt-4
+python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --analyzer claude --model claude-3-opus-20240229
+
+# Limit number of logs to process
+python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --max-logs 5
+
+# Save results to a specific file
+python analyze_mitm_logs.py mitm_logs/mitm-2025-11-08.jsonl --output my_analysis.json
