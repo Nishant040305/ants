@@ -13,19 +13,48 @@ import base64
 from datetime import datetime, date
 import zlib
 import gzip
-from llm_backend.llm_gemini import analyze
+import sys
+import os
+
+# Add parent directory to path to import from rules and model packages
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 # --- Setup for external dependencies ---
 try:
-    from security_rules import STATIC_RULES
+    from rules.security_rules import STATIC_RULES
 except ImportError:
     # Dummy rule for testing if file is missing
     STATIC_RULES = [("ExampleTag", lambda req: "example.com" in req.host)] 
+
 try:
-    from llm_backend.llm_gemini import analyze
-except ImportError:
+    from model.analyzer_factory import AnalyzerFactory
+    from model.gemini_analyzer import GeminiAnalyzer
+    
+    # Initialize analyzer
+    analyzer = GeminiAnalyzer()
+    
+    def analyze(context):
+        """Wrapper function to maintain compatibility with existing code."""
+        # Convert context to the format expected by the new analyzer
+        content = f"""Host: {context.get('request_host', 'unknown')}
+Summary: {json.dumps(context.get('summary', {}), indent=2)}
+Request Payload: {context.get('request_payload_snippet', '')}
+Response Payload: {context.get('response_payload_snippet', '')}"""
+        
+        result = analyzer.analyze_content(content)
+        
+        # Convert result to match expected format
+        return {
+            "risk_level": result.get("decision", "allow").capitalize(),
+            "recommended_action": result.get("reason", "No analysis available"),
+            "severity": result.get("severity", 0),
+            "tags": result.get("tags", [])
+        }
+        
+except ImportError as e:
     # Dummy analyze function if LLM backend is missing
     def analyze(context):
-        return {"risk_level": "None", "recommended_action": "Ignore"}
+        return {"risk_level": "None", "recommended_action": "Ignore", "severity": 0, "tags": []}
         
 OUT_DIR = Path.cwd() / "mitm_logs"
 OUT_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-# save_flows.py
+# mitmproxy -s mitmproxy_flow_saver.py --listen-host 0.0.0.0 -p 8080
 from mitmproxy import ctx, http
 from mitmproxy.net.http import headers
 from pathlib import Path
