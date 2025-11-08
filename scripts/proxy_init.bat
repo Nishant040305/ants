@@ -1,0 +1,1 @@
+Import-Certificate -FilePath "C:\Users\Lenovo\.mitmproxy\mitmproxy-ca-cert.cer" -CertStoreLocation Cert:\LocalMachine\Root
