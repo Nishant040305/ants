@@ -53,9 +53,6 @@ def rule_c2_indicators(req):
         "base64" in req.path.lower() or len(req.path) > 200
     )
 
-def rule_non_standard_port(req):
-    return req.port > 10000 and req.port not in [443, 80, 8080, 8443, 9000]
-
 def rule_internal_ip_reference(req):
     internal_patterns = ["127.0.0.1", "localhost", "10.", "192.168.", "172.16.", "169.254."]
     query_string = get_query_string(req)
@@ -73,11 +70,6 @@ def rule_xss_payload(req):
 def rule_broad_accept_header(req):
     accept_header = req.headers.get("Accept", "")
     return "*/*" in accept_header or "application/octet-stream" in accept_header
-
-def rule_unexpected_user_agent(req):
-    ua = req.headers.get("User-Agent", "").lower()
-    malicious_uas = ["python-requests", "go-http-client", "curl/", "wpscan", "sqlmap", "nikto"]
-    return any(m in ua for m in malicious_uas)
 
 def rule_admin_path_probe(req):
     probe_paths = ["/admin/", "/wp-admin", "/login.jsp", "/auth", "/security/"]
@@ -111,11 +103,9 @@ STATIC_RULES = [
     ("high_entropy_query", rule_high_entropy_query),
     ("binary_content_transfer", rule_binary_content_transfer),
 
-    ("unexpected_user_agent", rule_unexpected_user_agent),
     ("admin_path_probe", rule_admin_path_probe),
 
     ("untrusted_domain", rule_untrusted_domain),
-    ("non_standard_port", rule_non_standard_port),
     ("broad_accept_header", rule_broad_accept_header),
 
     ("tracking_telemetry", rule_tracking_telemetry),

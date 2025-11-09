@@ -1,1 +1,1 @@
-mitmproxy -s flow_saver.py --listen-host 0.0.0.0 -p 8080
+mitmproxy -s .\data_extraction\live_packet_filter_test.py --listen-host 0.0.0.0 -p 8080
