@@ -1,4 +1,5 @@
 ![ANTS Logo](https://img.shields.io/badge/ANTS-Network%20Security-blue) ![Python](https://img.shields.io/badge/Python-3.8+-green) ![License](https://img.shields.io/badge/License-MIT-yellow)
+<img width="1280" height="160" alt="BUILT AT Hack36 9 0 Secure" src="https://github.com/user-attachments/assets/4e5a4e0a-e0da-42b5-a527-11861c83a3c9" />
 
 
 # ANTS - Advanced Network Traffic Security Analyzer
